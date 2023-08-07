@@ -15,9 +15,7 @@ spec:
   storageClassName: {{ .storageClassName }}
   volumeMode: Filesystem
   azureFile:
-  {{- end }}
-    {{- with .Values.storage }}
-    secretName: {{.secretName}}
+    secretName: {{ .secretName }}
     shareName:  {{ .shareName }}
     readOnly: false
   {{- end }}
