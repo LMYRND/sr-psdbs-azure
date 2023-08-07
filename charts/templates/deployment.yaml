@@ -1,6 +1,7 @@
 {{- $namespace := .Values.namespace -}}
 {{- $env := .Values.env -}}
 {{- $nodeAffintyLabel := .Values.nodeAffintyLabel | default "default" }}
+
 apiVersion: apps/v1
 kind: Deployment
 metadata:
