@@ -1,5 +1,5 @@
 {{- $servicePort := default (include "psdbs.port" .) .Values.service.port}}
-{{- $hostName := .Values.service.hostName - }}
+{{- $hostName := .Values.service.hostName -}}
 {{- $namespace := .Values.namespace -}}
 kind: Ingress
 apiVersion: networking.k8s.io/v1
