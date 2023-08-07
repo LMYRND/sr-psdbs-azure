@@ -1,5 +1,6 @@
 {{- $namespace := .Values.namespace -}}
 {{- $env := .Values.env -}}
+
 apiVersion: v1
 kind: PersistentVolume
 metadata:
@@ -15,12 +16,13 @@ spec:
   volumeMode: Filesystem
   azureFile:
   {{- end }}
-    secretName: {{ include "psdbs.fullname" . | quote }}
+    secretName: {{.secretName}}
     {{- with .Values.storage }}
     shareName:  {{ .shareName }}
     readOnly: false
   {{- end }}
 ---
+
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
