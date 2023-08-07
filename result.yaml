@@ -1,0 +1,260 @@
+
+---
+# Source: psdbs/templates/secret.yaml
+kind: Secret
+apiVersion: v1
+metadata:
+  name: psdbs-manager-secret
+  namespace: sr-psdbs-prod
+data:
+
+  pg_db_user: Ylc5amF3PT0=
+  pg_db_password: Ylc5amF3PT0=
+  graph_db_user: Ylc5amF3PT0=
+  graph_db_password: Ylc5amF3PT0=
+type: Opaque
+---
+# Source: psdbs/templates/secret.yaml
+kind: Secret
+apiVersion: v1
+metadata:
+  name: psdbs
+  namespace: sr-psdbs-prod
+
+data:
+  azurestorageaccountkey: bW9jaw==
+  azurestorageaccountname: bW9jaw==
+type: Opaque
+---
+# Source: psdbs/templates/secret.yaml
+kind: Secret
+apiVersion: v1
+metadata:
+  name: acr-secret
+  namespace: sr-psdbs-prod
+data:
+  .dockerconfigjson: >-
+    eyJhdXRocyI6eyJzcnJlZ2lzLmF6dXJlY3IuaW8iOnsidXNlcm5hbWUiOiJzcnJlZ2lzIiwicGFzc3dvcmQiOiJKYWdEUEwrRjk4NFM3U1lER3k3dWVLVm5tdnBlc052TiIsImF1dGgiOiJjM0p5WldkcGN6cEtZV2RFVUV3clJqazRORk0zVTFsRVIzazNkV1ZMVm01dGRuQmxjMDUyVGc9PSIsImVtYWlsIjo
+iIn19fQ==
+type: kubernetes.io/dockerconfigjson
+---
+# Source: psdbs/templates/configMap.yaml
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: psdbs-manager-configmap
+  namespace: sr-psdbs-prod
+data:
+    app.env: docker
+    pg.connection-limit: "30"
+    pg.db.host: "10.0.0.4"
+    pg.db.name: SR
+    pg.db.port: "5432"
+    graph.host: "10.0.10.8"
+    graph.db.name: SR
+    graph.db.graph-name: graph
+    graph.port: "8530"
+    retry.count: "3"
+    retry.wait-before-retry: "1000"
+    ps.service-url: http://10.0.10.4/services/
+    ps.builder-port: "4000"
+    logs.dir: /data/SR/logs/sr-psdbs
+    psdbs.port: "8090"
+---
+# Source: psdbs/templates/storage.yaml
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: psdbs-manager-pv
+  namespace: sr-psdbs-prod
+spec:
+  capacity:
+    storage: 100Gi
+  accessModes:
+    - ReadWriteMany
+  storageClassName: azure-file-storageclass
+  volumeMode: Filesystem
+  azureFile:
+    secretName: "psdbs"
+    shareName:  data
+    readOnly: false
+---
+# Source: psdbs/templates/storage.yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: psdbs-manager-pvc
+  namespace: sr-psdbs-prod
+spec:
+  accessModes:
+  - ReadWriteMany
+  storageClassName: azure-file-storageclass
+  resources:
+     requests:
+       storage: 50Gi
+  volumeName: psdbs-manager-pv
+  volumeMode: Filesystem
+---
+# Source: psdbs/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: psdbs-manager-service
+  namespace: sr-psdbs-prod
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8090
+      targetPort: 8090
+      protocol: TCP
+      name: 8090-tcp
+  selector:
+    deploymentconfig: psdbs
+---
+# Source: psdbs/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: psdbs
+  namespace: sr-psdbs-prod
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      deploymentconfig: psdbs
+  template:
+    metadata:
+      labels:
+        deploymentconfig: psdbs
+    spec:
+      imagePullSecrets:
+        - name: "acr-secret"
+      volumes:
+        - name: psdbs-manager-pv
+          persistentVolumeClaim:
+            claimName: psdbs-manager-pvc
+      containers:
+        - name: psdbs
+          image: "srregis.azurecr.io/psdbsmanager:1.1.3"
+          volumeMounts:
+            - name: psdbs-manager-pv
+              mountPath: /data
+          env:
+            - name: APP_ENV
+              valueFrom:
+                configMapKeyRef:
+                  name: psdbs-manager-configmap
+                  key: app.env
+            - name: LOGS_DIR
+              valueFrom:
+                configMapKeyRef:
+                  name: psdbs-manager-configmap
+                  key: logs.dir
+            - name: PS_SERVICE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: psdbs-manager-configmap
+                  key: ps.service-url
+            - name: PS_BUILDER_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: psdbs-manager-configmap
+                  key: ps.builder-port
+            - name: RETRIES
+              valueFrom:
+                configMapKeyRef:
+                  name: psdbs-manager-configmap
+                  key: retry.count
+            - name: WAIT_BEFORE_RETRY
+              valueFrom:
+                configMapKeyRef:
+                  name: psdbs-manager-configmap
+                  key: retry.wait-before-retry
+            - name: PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: psdbs-manager-configmap
+                  key: psdbs.port
+            - name: GRAPH_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: psdbs-manager-configmap
+                  key: graph.port
+            - name: GRAPH_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: psdbs-manager-configmap
+                  key: graph.host
+            - name: GRAPH_DB_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: psdbs-manager-configmap
+                  key: graph.db.name
+            - name: GRAPH_DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: psdbs-manager-secret
+                  key: graph_db_user
+            - name: GRAPH_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: psdbs-manager-secret
+                  key: graph_db_password
+            - name: GRAPH_DB_DEFINED_GRAPH_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: psdbs-manager-configmap
+                  key: graph.db.graph-name
+            - name: PG_DB_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: psdbs-manager-configmap
+                  key: pg.db.host
+            - name: PG_DB_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: psdbs-manager-configmap
+                  key: pg.db.port
+            - name: PG_DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: psdbs-manager-secret
+                  key: pg_db_user
+            - name: PG_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: psdbs-manager-secret
+                  key: pg_db_password
+            - name: PG_DB_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: psdbs-manager-configmap
+                  key: pg.db.name
+            - name: PG_CONNECTION_LIMIT
+              valueFrom:
+                configMapKeyRef:
+                  name: psdbs-manager-configmap
+                  key: pg.connection-limit
+      imagePullPolicy: IfNotPresent
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 30
+      dnsPolicy: ClusterFirst
+
+---
+# Source: psdbs/templates/route.yaml
+kind: Route
+apiVersion: route.openshift.io/v1
+metadata:
+  name: psdbs-manager-route
+  namespace: sr-psdbs-prod
+  annotations:
+    openshift.io/host.generated: 'true'
+spec:
+  to:
+    kind: Service
+    name: psdbs-manager-service
+    weight: 100
+  port:
+    targetPort: "8090"
+  wildcardPolicy: None
+

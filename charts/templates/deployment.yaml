@@ -1,0 +1,364 @@
+{{- $namespace := .Values.namespace -}}
+{{- $env := .Values.env -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "psdbs.fullname" . }}
+  namespace: {{ $namespace }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      deploymentconfig: {{ include "psdbs.fullname" . }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }} 
+      labels:
+        deploymentconfig: {{ include "psdbs.fullname" . }}
+    spec:
+      {{- if .Values.storage }}
+      volumes:
+        - name: {{ include "psdbs.fullname" . }}-{{$env}}-manager-pv
+          persistentVolumeClaim:
+            claimName: {{ include "psdbs.fullname" . }}-{{$env}}-manager-pvc
+      {{- end }}
+      containers:
+        - name: {{ .Chart.Name }}
+          image: {{ include "psdbs.image" . }}
+          volumeMounts:
+            - name: {{ include "psdbs.fullname" . }}-{{$env}}-manager-pv
+              mountPath: /data
+          env:
+            - name: APP_ENV
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "psdbs.fullname" . }}-manager-configmap
+                  key: app.env
+            - name: LOGS_DIR
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "psdbs.fullname" . }}-manager-configmap
+                  key: logs.dir
+            - name: PS_SERVICE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "psdbs.fullname" . }}-manager-configmap
+                  key: ps.service-url
+            - name: PS_BUILDER_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "psdbs.fullname" . }}-manager-configmap
+                  key: ps.builder-port
+            - name: RETRIES
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "psdbs.fullname" . }}-manager-configmap
+                  key: retry.count
+            - name: WAIT_BEFORE_RETRY
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "psdbs.fullname" . }}-manager-configmap
+                  key: retry.wait-before-retry
+            - name: PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "psdbs.fullname" . }}-manager-configmap
+                  key: psdbs.port
+            - name: GRAPH_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "psdbs.fullname" . }}-manager-configmap
+                  key: graph.port
+            - name: GRAPH_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "psdbs.fullname" . }}-manager-configmap
+                  key: graph.host
+            - name: GRAPH_DB_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "psdbs.fullname" . }}-manager-configmap
+                  key: graph.db.name
+            - name: SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "psdbs.fullname" . }}-manager-secret
+                  key: password
+            - name: GRAPH_DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "psdbs.fullname" . }}-manager-secret
+                  key: graph_db_user
+            - name: GRAPH_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "psdbs.fullname" . }}-manager-secret
+                  key: graph_db_password
+            - name: GRAPH_DB_DEFINED_GRAPH_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "psdbs.fullname" . }}-manager-configmap
+                  key: graph.db.graph-name
+            - name: PG_DB_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "psdbs.fullname" . }}-manager-configmap
+                  key: pg.db.host
+            - name: PG_DB_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "psdbs.fullname" . }}-manager-configmap
+                  key: pg.db.port
+            - name: PG_DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "psdbs.fullname" . }}-manager-secret
+                  key: pg_db_user
+            - name: PG_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "psdbs.fullname" . }}-manager-secret
+                  key: pg_db_password
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "psdbs.fullname" $ }}-manager-secret
+                  key: pg_db_password    
+            - name: PG_DB_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "psdbs.fullname" . }}-manager-configmap
+                  key: pg.db.name
+            - name: PG_CONNECTION_LIMIT
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "psdbs.fullname" . }}-manager-configmap
+                  key: pg.connection-limit
+            - name: DB_DUMP_LOCATION
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "psdbs.fullname" . }}-manager-configmap
+                  key: psdbs.dump
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+      restartPolicy: {{ .Values.restartPolicy | default "Always" }} 
+      terminationGracePeriodSeconds: 30
+      dnsPolicy: ClusterFirst
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 25%
+      maxSurge: 25%
+      
+---
+
+{{- $registry := .Values.registry | default "srregis.azurecr.io" }}
+{{- $appName := .Values.appName | default "sr-gate" }}
+{{- $imageName := .Values.imageName | default "lmy/sr-gate-wo-sa" }}
+{{- $versionTag := .Values.versionTag | default "latest" }}
+{{- $namespace := .Values.namespace }}
+{{- $storageName := .Values.storage.name }}
+{{- range .Values.deployment_rest }}
+
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: "{{ include "psdbs.fullname" $}}-ms-{{lower .container.msName}}"
+  namespace: {{ $namespace }}
+spec:
+  replicas: {{ .container.replicaCount  | default 1}}
+  selector:
+    matchLabels:
+      deploymentconfig: {{ include "psdbs.fullname" $}}-ms-{{lower .container.msName}}
+  template:
+    metadata:
+      {{- with $.Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }} 
+      labels:
+        deploymentconfig: {{ include "psdbs.fullname" $}}-ms-{{lower .container.msName}}
+    spec:
+      {{- if $.Values.storage }}      
+      volumes:
+        - name: {{ include "psdbs.fullname" $ }}-{{$env}}-manager-pv
+          persistentVolumeClaim:
+            claimName: {{ include "psdbs.fullname" $ }}-{{$env}}-manager-pvc
+      {{- end }}
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: agentpool
+                operator: In
+                values:
+                - "{{ $nodeAffintyLabel }}"
+      containers:
+        - name: "{{ $.Chart.Name }}--ms-{{lower .container.msName}}"
+          image: {{ include "psdbs.image_ms" $ }}
+          volumeMounts:
+            - name: {{ include "psdbs.fullname" $ }}-{{$env}}-manager-pv
+              mountPath: /data
+          env:
+            - name: APP_ENV
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "psdbs.fullname" $ }}-manager-configmap
+                  key: app.env
+            - name: LOGS_DIR
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "psdbs.fullname" $ }}-manager-configmap
+                  key: logs.dir
+            - name: PS_SERVICE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "psdbs.fullname" $ }}-manager-configmap
+                  key: ps.service-url
+            - name: PS_BUILDER_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "psdbs.fullname" $ }}-manager-configmap
+                  key: ps.builder-port
+            - name: RETRIES
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "psdbs.fullname" $ }}-manager-configmap
+                  key: retry.count
+            - name: WAIT_BEFORE_RETRY
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "psdbs.fullname" $ }}-manager-configmap
+                  key: retry.wait-before-retry
+            - name: PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "psdbs.fullname" $ }}-manager-configmap
+                  key: psdbs.port
+            - name: GRAPH_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "psdbs.fullname" $ }}-manager-configmap
+                  key: graph.port
+            - name: GRAPH_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "psdbs.fullname" $ }}-manager-configmap
+                  key: graph.host
+            - name: GRAPH_DB_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "psdbs.fullname" $ }}-manager-configmap
+                  key: graph.db.name
+            - name: SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "psdbs.fullname" $ }}-manager-secret
+                  key: password
+            - name: GRAPH_DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "psdbs.fullname" $ }}-manager-secret
+                  key: graph_db_user
+            - name: GRAPH_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "psdbs.fullname" $ }}-manager-secret
+                  key: graph_db_password
+            - name: GRAPH_DB_DEFINED_GRAPH_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "psdbs.fullname" $ }}-manager-configmap
+                  key: graph.db.graph-name
+            - name: PG_DB_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "psdbs.fullname" $ }}-manager-configmap
+                  key: pg.db.host
+            - name: PG_DB_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "psdbs.fullname" $ }}-manager-configmap
+                  key: pg.db.port
+            - name: PG_DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "psdbs.fullname" $ }}-manager-secret
+                  key: pg_db_user
+            - name: PG_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "psdbs.fullname" $ }}-manager-secret
+                  key: pg_db_password
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "psdbs.fullname" $ }}-manager-secret
+                  key: pg_db_password                  
+            - name: PG_DB_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "psdbs.fullname" $ }}-manager-configmap
+                  key: pg.db.name
+            - name: PG_CONNECTION_LIMIT
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "psdbs.fullname" $ }}-manager-configmap
+                  key: pg.connection-limit          
+            - name: DB_DUMP_LOCATION
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "psdbs.fullname" $ }}-manager-configmap
+                  key: psdbs.dump
+            - name: RABBIT_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "psdbs.fullname" $ }}-ms-manager-configmap
+                  key: rabbitmq.host
+            - name: RABBIT_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "psdbs.fullname" $ }}-ms-manager-configmap
+                  key: rabbitmq.port
+            - name: RABBIT_USER
+              valueFrom:
+                secretKeyRef:
+                  name: "{{ include "psdbs.fullname" $ }}-ms-secret"
+                  key: rabbitmq_user
+            - name: RABBIT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: "{{ include "psdbs.fullname" $ }}-ms-secret"
+                  key: rabbitmq_password
+            - name: RPC_EXCHANGE
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "psdbs.fullname" $ }}-ms-manager-configmap
+                  key: rabbitmq.rpcxchange
+            - name: MS_NAME
+              value: {{.container.msName}}
+            - name: QUEUE_NAME
+              value: {{.container.queueName}}
+           {{- if .container.model3DPath }}  
+            - name: MODEL_3D_PATH
+              value: {{.container.model3DPath}}
+           {{- end }}
+          imagePullPolicy: {{ $.Values.image_ms.pullPolicy }}
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 30
+      dnsPolicy: ClusterFirst
+      schedulerName: default-scheduler
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 25%
+      maxSurge: 25%
+{{- end }}
+
+
+      

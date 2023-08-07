@@ -1,0 +1,41 @@
+{{- $namespace := .Values.namespace -}}
+{{- $env := .Values.env -}}
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: {{ include "psdbs.fullname" . }}-{{$env}}-manager-pv
+  namespace: {{ $namespace }}
+spec:
+ {{- with .Values.storage }}
+  capacity:
+    storage: {{ .storageCapacity }}
+  accessModes:
+    - {{ .accessModes }}
+  storageClassName: {{ .storageClassName }}
+  volumeMode: Filesystem
+  azureFile:
+  {{- end }}
+    secretName: {{ include "psdbs.fullname" . | quote }}
+    {{- with .Values.storage }}
+    shareName:  {{ .shareName }}
+    readOnly: false
+  {{- end }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "psdbs.fullname" . }}-{{$env}}-manager-pvc
+  namespace: {{ $namespace }}
+spec:
+ {{- with .Values.storage }}
+  accessModes:
+  - ReadWriteMany
+  storageClassName: {{ .storageClassName }}
+  resources:
+     requests:
+       storage: {{ .storageRequest }}
+ {{- end }}
+  volumeName: {{ include "psdbs.fullname" . }}-{{$env}}-manager-pv
+  volumeMode: Filesystem
+
+---

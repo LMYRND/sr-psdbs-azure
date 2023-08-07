@@ -1,0 +1,17 @@
+
+{{- $servicePort := default (include "psdbs.port" .) .Values.service.port}}
+{{- $namespace := .Values.namespace -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "psdbs.fullname" . }}-manager-service
+  namespace: {{ $namespace }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ $servicePort }}
+      targetPort: {{ include "psdbs.port"  .}}
+      protocol: TCP
+      name: {{$servicePort}}-tcp
+  selector:
+    deploymentconfig: {{ include "psdbs.fullname" . }}

@@ -1,0 +1,145 @@
+# Default values for psdbs.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+namespace: sr-psdbs
+versionTag: "1.1.27"
+replicaCount: 1
+env: azure
+image:
+  imageName: psdbsmanager
+  registry: devsracr.azurecr.io
+  imageTag: "1.1.27"
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: ""
+  
+image_ms:
+  imageName: psdbsmanager_ms
+  registry: devsracr.azurecr.io
+  imageTag: "1.1.24"
+  pullPolicy: IfNotPresent
+
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: ""
+  
+nameOverride: ""
+fullnameOverride: ""
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+podAnnotations: {}
+
+podSecurityContext: {}
+  # fsGroup: 2000
+
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+  hosts:
+    - host: chart-example.local
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  tls: []
+  #  - secretName: chart-example-tls
+  #    hosts:
+  #      - chart-example.local
+
+resources: {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+storage:
+  name: sr-psdbs-data
+  secretName: secret-sr-psdb
+  storageCapacity: 100Gi
+  shareName: data
+  storageClassName: azure-file-sc
+  accessModes: ReadWriteMany
+  storageRequest: 50Gi
+  azurestorageaccountkey: bW9jaw==
+  azurestorageaccountname: bW9jaw==
+
+configMap:
+    pg:
+       connectionLimit: 30
+       db:
+            host: dev-sr-postgre-server.postgres.database.azure.com
+            name: "sr"
+            user: bla
+            password: bla
+    graph:
+        db:
+            host: 192.168.115.9
+            name: "SR"
+            user: bla
+            password: bla
+            port: 32215
+        graphName: "graph"  
+    retry:
+        count: "3"
+        waitBeforeRetry: "1000"
+    ps:
+        serviceUrl: "http://10.0.10.4/services/"
+        servicePort: "4000"
+    logsDir: "/data/SR/logs/sr-psdbs"
+    secretFile: blabla
+    dump: "/data/SR/dump"
+    blabla: test
+    rabbitmq:
+        rpcExchange: "LMY"
+        host: 192.168.115.5
+        user: "bla"
+        password: "blabla"
+        port: 5672
+       
+port: 8090
+service:
+    type: ClusterIP
+    port: 8090
+    hostName: sr-psdbs.azure.io
+
+deployment_rest:
+    - container:
+        msName: "exportTrees"
+        queueName: "exportTrees"
+        replicaCount: 1
+        model3DPath: "/data/SR/template-glb"

@@ -1,0 +1,19 @@
+{{- $namespace := .Values.namespace -}}
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: {{ include "psdbs.fullname" . }}-manager-configmap
+  namespace: {{ $namespace }}
+data:
+  {{ include  "psdbs.configMap" . | indent 2 }}
+  
+---
+
+{{- $namespace := .Values.namespace -}}
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: {{ include "psdbs.fullname" . }}-ms-manager-configmap
+  namespace: {{ $namespace }}
+data:
+  {{ include  "psdbs.msConfigMap" . | indent 2 }}

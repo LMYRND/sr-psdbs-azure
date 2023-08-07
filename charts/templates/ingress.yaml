@@ -1,0 +1,24 @@
+{{- $servicePort := default (include "psdbs.port" .) .Values.service.port}}
+{{- $hostName := .Values.service.hostName - }}
+{{- $namespace := .Values.namespace -}}
+kind: Ingress
+apiVersion: networking.k8s.io/v1
+metadata:
+  name: {{ include "psdbs.fullname" . }}-manager-route
+  namespace: {{ $namespace }}
+  annotations:
+    ingress.kubernetes.io/proxy-body-size: 100M
+    ingress.kubernetes.io/app-root: "/"
+spec:
+  rules:
+  - host: {{ $hostName }}
+    http:
+      paths:
+      - path: /
+        pathType: ImplementationSpecific
+        backend:
+          service:
+            name: {{ include "psdbs.fullname" . }}-manager-service
+            port:
+              number: {{ $servicePort }}
+
