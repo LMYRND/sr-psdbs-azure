@@ -1,5 +1,6 @@
 {{- $namespace := .Values.namespace -}}
 {{- $env := .Values.env -}}
+{{- $nodeAffintyLabel := .Values.nodeAffintyLabel | default "default" }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -27,6 +28,15 @@ spec:
           persistentVolumeClaim:
             claimName: {{ include "psdbs.fullname" . }}-{{$env}}-manager-pvc
       {{- end }}
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: agentpool
+                operator: In
+                values:
+                - "{{ $nodeAffintyLabel }}"
       containers:
         - name: {{ .Chart.Name }}
           image: {{ include "psdbs.image" . }}
@@ -162,6 +172,7 @@ spec:
 {{- $versionTag := .Values.versionTag | default "latest" }}
 {{- $namespace := .Values.namespace }}
 {{- $storageName := .Values.storage.name }}
+{{- $nodeAffintyLabel := .Values.nodeAffintyLabel | default "default" }}
 {{- range .Values.deployment_rest }}
 
 kind: Deployment

@@ -86,7 +86,7 @@ nodeSelector: {}
 tolerations: []
 
 affinity: {}
-
+nodeAffintyLabel: default
 storage:
   name: sr-psdbs-data
   secretName: secret-sr-psdb
