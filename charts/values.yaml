@@ -100,9 +100,9 @@ storage:
 
 configMap:
     pg:
-       connectionLimit: 30
+       connectionLimit: 100
        db:
-            host: dev-sr-postgre-server.postgres.database.azure.com
+            host: f5b6e6017678.dev-sr-postgre-server.private.postgres.database.azure.com
             name: "sr"
             user: bla
             password: bla
@@ -118,7 +118,7 @@ configMap:
         count: "3"
         waitBeforeRetry: "1000"
     ps:
-        serviceUrl: "http://10.0.10.4/services/"
+        serviceUrl: "http://PhotoDevV1/services/"
         servicePort: "4000"
     logsDir: "/data/SR/logs/sr-psdbs"
     secretFile: blabla
