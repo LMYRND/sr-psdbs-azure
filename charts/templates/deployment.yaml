@@ -95,6 +95,11 @@ spec:
                 configMapKeyRef:
                   name: {{ include "psdbs.fullname" . }}-manager-configmap
                   key: graph.db.name
+            - name: GRAPH_DB_CONNECTION_PROTOCOL
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "psdbs.fullname" . }}-manager-configmap
+                  key: graph.db.protocol
             - name: SECRET
               valueFrom:
                 secretKeyRef:
@@ -262,6 +267,11 @@ spec:
                 configMapKeyRef:
                   name: {{ include "psdbs.fullname" $ }}-manager-configmap
                   key: graph.host
+            - name: GRAPH_DB_CONNECTION_PROTOCOL
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "psdbs.fullname" $ }}-manager-configmap
+                  key: graph.db.protocol
             - name: GRAPH_DB_NAME
               valueFrom:
                 configMapKeyRef:

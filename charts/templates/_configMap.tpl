@@ -12,6 +12,7 @@
   graph.db.name: {{required "missing a valid postgress database name!" .db.name}}
   graph.db.graph-name: {{ default "graph" .graphName }}
   graph.port: {{ default 8530 .db.port | quote }}
+  graph.protocol: {{ default "https" .db.protocol | quote }}
   {{- end}}
 
 
