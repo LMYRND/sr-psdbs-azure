@@ -112,7 +112,7 @@ configMap:
             name: "SR"
             user: bla
             password: bla
-            port: 32215
+            port: 8529
             protocol: "https"
         graphName: "graph"  
     retry:
