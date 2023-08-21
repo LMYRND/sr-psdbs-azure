@@ -99,7 +99,7 @@ spec:
               valueFrom:
                 configMapKeyRef:
                   name: {{ include "psdbs.fullname" . }}-manager-configmap
-                  key: graph.db.protocol
+                  key: graph.protocol
             - name: SECRET
               valueFrom:
                 secretKeyRef:
@@ -271,7 +271,7 @@ spec:
               valueFrom:
                 configMapKeyRef:
                   name: {{ include "psdbs.fullname" $ }}-manager-configmap
-                  key: graph.db.protocol
+                  key: graph.protocol
             - name: GRAPH_DB_NAME
               valueFrom:
                 configMapKeyRef:
