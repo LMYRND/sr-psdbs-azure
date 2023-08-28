@@ -103,7 +103,7 @@ configMap:
        connectionLimit: 100
        db:
             host: 192.168.116.4
-            name: "sr"
+            name: "SR"
             user: bla
             password: bla
     graph:
