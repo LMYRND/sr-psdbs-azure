@@ -102,7 +102,7 @@ configMap:
     pg:
        connectionLimit: 100
        db:
-            host: 192.168.116.4
+            host: "dev-sr-postgre-server.postgres.database.azure.com"
             name: "sr"
             user: bla
             password: bla
