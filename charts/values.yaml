@@ -108,7 +108,7 @@ configMap:
             password: bla
     graph:
         db:
-            host: 192.168.115.9
+            host: 192.168.115.23
             name: "SR"
             user: bla
             password: bla
