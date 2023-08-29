@@ -5,6 +5,7 @@
   pg.db.host: {{required "missing a valid postgress database host address! example: 127.0.0.1 / pc-name" .db.host | quote}}
   pg.db.name: {{required "missing a valid postgress database name!" .db.name }}
   pg.db.port: {{ default 5432 .port | quote }}
+  pg.encrypt: {{ default false .encrypt | quote }}
   {{- end}}
  
   {{- with .Values.configMap.graph }}

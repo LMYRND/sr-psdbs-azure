@@ -125,6 +125,11 @@ spec:
                 configMapKeyRef:
                   name: {{ include "psdbs.fullname" . }}-manager-configmap
                   key: pg.db.host
+            - name: PG_CONNECTION_ENCRYPT
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "psdbs.fullname" . }}-manager-configmap
+                  key: pg.encrypt
             - name: PG_DB_PORT
               valueFrom:
                 configMapKeyRef:

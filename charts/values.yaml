@@ -2,13 +2,13 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 namespace: sr-psdbs-azure
-versionTag: "1.2.10"
+versionTag: "1.2.11"
 replicaCount: 1
 env: azure
 image:
   imageName: psdbsmanager
   registry: devsracr.azurecr.io
-  imageTag: "1.2.10"
+  imageTag: "1.2.11"
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
   tag: ""
@@ -101,11 +101,12 @@ storage:
 configMap:
     pg:
        connectionLimit: 100
+       encrypt: true
        db:
             host: 192.168.116.4
             name: "sr"
             user: bla
-            password: bla
+            password: bla   
     graph:
         db:
             host: 192.168.115.23
