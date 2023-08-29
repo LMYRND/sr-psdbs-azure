@@ -168,6 +168,8 @@ spec:
                 configMapKeyRef:
                   name: {{ include "psdbs.fullname" . }}-manager-configmap
                   key: psdbs.dump
+            - name: PGSSLMODE
+              value: require
           imagePullPolicy: {{ .Values.image.pullPolicy }}
       restartPolicy: {{ .Values.restartPolicy | default "Always" }} 
       terminationGracePeriodSeconds: 30
