@@ -6,8 +6,10 @@ kind: Service
 metadata:
   name: {{ include "psdbs.fullname" . }}-manager-service
   namespace: {{ $namespace }}
+  annotations:
+    service.beta.kubernetes.io/azure-load-balancer-internal: 'true'
 spec:
-  type: {{ .Values.service.type }}
+  type: LoadBalancer
   ports:
     - port: {{ $servicePort }}
       targetPort: {{ include "psdbs.port"  .}}
