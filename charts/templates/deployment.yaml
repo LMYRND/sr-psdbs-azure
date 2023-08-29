@@ -45,8 +45,8 @@ spec:
           volumeMounts:
             - name: {{ include "psdbs.fullname" . }}-{{$env}}-manager-pv
               mountPath: /data
-          command:
-            - "/bin/bash"
+          command: [ "/bin/bash", "-c", "--" ]
+          args: [ "while true; do sleep 30; done;" ]
           env:
             - name: APP_ENV
               valueFrom:
