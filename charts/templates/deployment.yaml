@@ -347,6 +347,8 @@ spec:
                 configMapKeyRef:
                   name: {{ include "psdbs.fullname" $ }}-manager-configmap
                   key: psdbs.dump
+            - name: PGSSLMODE
+              value: require
             - name: RABBIT_HOST
               valueFrom:
                 configMapKeyRef:
