@@ -139,13 +139,14 @@ service:
     port: 8090
     hostName: sr-psdbs.azure.io
 
+
 deployment_rest:
     - container:
         msName: "exportTrees"
         queueName: "exportTrees"
         replicaCount: 1
         model3DPath: "/data/SR/template-glb"
-    - container: 
+    - container:
         msName: "mergeCityJsons" 
         queueName: "mergeCityJsons"
         replicaCount: 1
