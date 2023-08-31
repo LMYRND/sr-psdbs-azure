@@ -146,11 +146,11 @@ deployment_rest:
         queueName: "exportTrees"
         replicaCount: 1
         model3DPath: "/data/SR/template-glb"
-    # - container:
-    #     msName: "mergeCityJsons" 
-    #     queueName: "mergeCityJsons"
-    #     replicaCount: 1
-    # - container:
-    #     msName: "getCityJsonArea"
-    #     queueName: "getCityJsonArea"
-    #     replicaCount: 1
+    - container:
+        msName: "mergeCityJsons" 
+        queueName: "mergeCityJsons"
+        replicaCount: 1
+    - container:
+        msName: "getCityJsonArea"
+        queueName: "getCityJsonArea"
+        replicaCount: 1
