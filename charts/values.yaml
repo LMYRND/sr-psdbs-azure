@@ -109,7 +109,7 @@ configMap:
             password: bla   
     graph:
         db:
-            host: arangodb-single-server.sr.com
+            host: arangodb.sr.private.westeurope.azmk8s.io
             name: "SR"
             user: bla
             password: bla
