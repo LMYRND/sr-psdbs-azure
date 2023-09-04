@@ -109,11 +109,11 @@ configMap:
             password: bla   
     graph:
         db:
-            host: arangodb-single-server.sr.com
+            host: single-server.default.svc
             name: "SR"
             user: bla
             password: bla
-            port: 443
+            port: 8529
             protocol: "https"
         graphName: "graph"  
     retry:
