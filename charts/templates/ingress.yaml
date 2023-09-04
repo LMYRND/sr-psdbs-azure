@@ -10,12 +10,17 @@ metadata:
     ingress.kubernetes.io/proxy-body-size: 100M
     ingress.kubernetes.io/app-root: "/"
 spec:
+  ingressClassName: nginx
+  tls:
+   - hosts:
+     - {{ .hostName }}
+     secretName: sr-psdbs-azure-tls
   rules:
   - host: {{ $hostName }}
     http:
       paths:
       - path: /
-        pathType: ImplementationSpecific
+        pathType: Prefix
         backend:
           service:
             name: {{ include "psdbs.fullname" . }}-manager-service
