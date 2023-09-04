@@ -113,8 +113,8 @@ configMap:
             name: "SR"
             user: bla
             password: bla
-            port: 443
-            protocol: "https"
+            port: 80
+            protocol: "http"
         graphName: "graph"  
     retry:
         count: "3"
