@@ -50,9 +50,9 @@ spec:
           env:
             - name: CA_CERT
               valueFrom:
-                configMapKeyRef:
-                  name: "kube-root-ca.crt"
-                  key: ca.crt
+                secretKeyRef:
+                  name: "sr-psdbs-azure-tls"
+                  key: tls.crt
             - name: APP_ENV
               valueFrom:
                 configMapKeyRef:
@@ -239,9 +239,9 @@ spec:
           env:
             - name: CA_CERT
               valueFrom:
-                configMapKeyRef:
-                  name: "kube-root-ca.crt"
-                  key: ca.crt
+                secretKeyRef:
+                  name: "sr-psdbs-azure-tls"
+                  key: tls.crt
             - name: APP_ENV
               valueFrom:
                 configMapKeyRef:
