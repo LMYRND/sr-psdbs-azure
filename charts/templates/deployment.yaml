@@ -48,6 +48,11 @@ spec:
           #command: [ "/bin/bash", "-c", "--" ]
           #args: [ "while true; do sleep 30; done;" ]
           env:
+            - name: CA_CERT
+              valueFrom:
+                configMapKeyRef:
+                  name: "kube-root-ca.crt"
+                  key: ca.crt
             - name: APP_ENV
               valueFrom:
                 configMapKeyRef:
@@ -232,6 +237,11 @@ spec:
             - name: {{ include "psdbs.fullname" $ }}-{{$env}}-manager-pv
               mountPath: /data
           env:
+            - name: CA_CERT
+              valueFrom:
+                configMapKeyRef:
+                  name: "kube-root-ca.crt"
+                  key: ca.crt
             - name: APP_ENV
               valueFrom:
                 configMapKeyRef:
