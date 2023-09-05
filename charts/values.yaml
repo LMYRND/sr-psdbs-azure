@@ -114,7 +114,7 @@ configMap:
             user: bla
             password: bla
             port: 443
-            protocol: "ssl"
+            protocol: "https"
         graphName: "graph"  
     retry:
         count: "3"
