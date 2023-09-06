@@ -51,8 +51,8 @@ spec:
             - name: CA_CERT
               valueFrom:
                 secretKeyRef:
-                  name: "single-server-psdbs-test-ca"
-                  key: ca.crt
+                  name: "arango-tls-secret"
+                  key: tls.crt
             - name: APP_ENV
               valueFrom:
                 configMapKeyRef:
@@ -240,8 +240,8 @@ spec:
             - name: CA_CERT
               valueFrom:
                 secretKeyRef:
-                  name: "single-server-psdbs-test-ca"
-                  key: ca.crt
+                  name: "arango-tls-secret"
+                  key: tls.crt
             - name: APP_ENV
               valueFrom:
                 configMapKeyRef:
