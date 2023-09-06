@@ -51,8 +51,8 @@ spec:
             - name: CA_CERT
               valueFrom:
                 secretKeyRef:
-                  name: "sr-psdbs-azure-tls"
-                  key: tls.crt
+                  name: "single-server-ca"
+                  key: ca.crt
             - name: APP_ENV
               valueFrom:
                 configMapKeyRef:
@@ -240,8 +240,8 @@ spec:
             - name: CA_CERT
               valueFrom:
                 secretKeyRef:
-                  name: "sr-psdbs-azure-tls"
-                  key: tls.crt
+                  name: "single-server-ca"
+                  key: ca.crt
             - name: APP_ENV
               valueFrom:
                 configMapKeyRef:
