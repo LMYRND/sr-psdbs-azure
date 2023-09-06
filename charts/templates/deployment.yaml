@@ -51,7 +51,7 @@ spec:
             - name: CA_CERT
               valueFrom:
                 secretKeyRef:
-                  name: "single-server-ca"
+                  name: "single-server-psdbs-test-ca"
                   key: ca.crt
             - name: APP_ENV
               valueFrom:
@@ -240,7 +240,7 @@ spec:
             - name: CA_CERT
               valueFrom:
                 secretKeyRef:
-                  name: "single-server-ca"
+                  name: "single-server-psdbs-test-ca"
                   key: ca.crt
             - name: APP_ENV
               valueFrom:
