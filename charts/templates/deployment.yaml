@@ -240,7 +240,7 @@ spec:
             - name: CA_CERT
               valueFrom:
                 secretKeyRef:
-                  name: "single-server-ca"
+                  name: "single-server-ca-test"
                   key: ca.crt
             - name: APP_ENV
               valueFrom:
